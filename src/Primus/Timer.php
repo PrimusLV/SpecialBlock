@@ -16,10 +16,7 @@ class Timer extends PluginTask{
 
   public function onRun($tick){
       foreach($this->plugin->getServer()->getOnlinePlayers() as $p){
-        $x = $p->getFloorX();
-        $y = $p->getFloorY();
-        $z = $p->getFloorZ();
-        $this->plugin->checkBlock($p, $x, $y, $z);
+        $this->plugin->checkBlock($p);
       }
 }
 }
