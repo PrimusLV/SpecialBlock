@@ -20,6 +20,12 @@ use pocketmine\Player;
 
 class Main extends PluginBase implements Listener{
 	
+	const TYPE_OP = 1;
+	const TYPE_CONSOLE = 2;
+	const TYPE_AS_OTHER = 3;
+	const TYPE_AS_OTHER_OP = 4;
+	const TYPE_NORMAL = 5;
+	
 	private $cfg;
 	private $blockCmds;
 	private $killedByBlock;
@@ -29,6 +35,7 @@ class Main extends PluginBase implements Listener{
 	private $blockClass;
 	private $list;
 	private $interval;
+	
 	
 	public function onEnable(){
 		$this->interval = $this->getConfig()->get('interval');
@@ -61,35 +68,29 @@ class Main extends PluginBase implements Listener{
 		
 	}
 	
-	public function checkBlock($player, $x, $y, $z){
-		$pos = new Vector3($x, $y - 1, $z);
-		$blockId = $player->getLevel()->getBlock($pos);
-		//$this->getLogger()->info($blockId." is on pos".$x."-".$y."-".$z."");
+	public function checkBlock(IPlayer $player){
+		$pos = $player->subtract(0, -1)
+		$block = $player->getLevel()->getBlock($pos);
 		$world = $player->getLevel()->getName();
-		if($blockId instanceof Block){
-			$this->getLogger($pos);
-			if($blockId->getId() === Block::get($this->damageBlock)->getId()){
-			//	$this->getLogger()->info($blockId." is on pos".$x."-".$y."-".$z."");
-				$this->doDamage($player);
-				return true;
-			}elseif($blockId->getId() === Block::get($this->healingBlock)->getId()){
-				$this->healPlayer($player);
-				return true;
-			}elseif($blockId->getId() === Block::get($this->effectBlock)->getId()){
-				$this->giveEffect($player);
-				return true;
-			}elseif($this->isCommandBlock($x, $y, $z, $world)){
+		if($block instanceof Block){
+			switch($block->getId()){
+				case Block::get($this->damageBlock)->getId():
+					$this->doDamage($player);
+				break;
+				case Block::get($tis->healingBlock)->getId():
+					$this->healPlayer($player)
+				break;
+				case Block::get($this->effectBlock)->getId():
+					$this->giveEffect($player);
+				break;
+			}
+			if($this->isCommandBlock($x, $y, $z, $world)){
 				$this->executeCmds($x, $y, $z, $world, $player);
 				return true;
-				}else{
-				return true;
-				}
-		}else{
-			//$this->getLogger()->info($blockId." is not a block on pos".$x."-".$y."-".$z."");
 		}
 	}
-	
-	public function doDamage($player){
+	 
+	public function doDamage($player){ # TODO: Improve this function
 		$damage = $this->getConfig()->get('damage');
 		$currentHealth = $player->getHealth();
 		$finalDmg = $currentHealth - $damage;
@@ -233,15 +234,15 @@ class Main extends PluginBase implements Listener{
 		public function getCommandType($command){
 			if(strpos($command, '{OP}') !== false){
 				echo strpos($command, '{OP}');
-				return 1;
+				return self::TYPE_OP;
 			}elseif(strpos($command, '{CON}') !== false){
-				return 2;
+				return self::TYPE_CONSOLE;
 			}elseif(strpos($command, '{AO}') !== false){
-				return 3;
+				return self::TYPE_AS_OTHER;
 			}elseif(strpos($command, '{AOOP}') !== false){
-				return 4;
+				return self::TYPE_AS_OTHER_OP;
 				}else{
-				return 5;
+				return self::TYPE_NORMAL;
 			}
 		}
 		
